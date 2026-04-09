@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColorPhoto - 图片颜色提取工具</title>
+  <link rel="stylesheet" href="/src/index.css">
+  <style>
+    @font-face {
+      font-family: 'MiSans';
+      src: url('/src/assets/MiSans-Medium.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 左侧预览区域 -->
+    <div class="preview-area">
+      <div id="dropZone" class="drop-zone">
+        <div class="drop-content">
+          <div class="icon-upload">📁</div>
+          <h2>导入图片</h2>
+          <p>点击图标或拖拽JPG图片到这里</p>
+          <input type="file" id="fileInput" accept="image/jpeg" style="display: none;">
+        </div>
+      </div>
+      
+      <div id="previewContainer" class="preview-container" style="display: none;">
+        <canvas id="previewCanvas"></canvas>
+        <div id="colorBlocks" class="color-blocks vertical"></div>
+      </div>
+    </div>
+
+    <!-- 右侧控制面板 -->
+    <div class="control-panel">
+      <h1 class="app-title">ColorPhoto</h1>
+      
+      <!-- 显示模式 -->
+      <div class="control-section">
+        <h3>显示模式</h3>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="displayMode" value="vertical" checked>
+            <span>纵向色块</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="displayMode" value="edge">
+            <span>边缘色块</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="displayMode" value="grid">
+            <span>方格色块</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 边缘位置（仅边缘模式显示） -->
+      <div id="edgePositionSection" class="control-section" style="display: none;">
+        <h3>边缘位置</h3>
+        <div class="edge-buttons">
+          <button class="edge-btn" data-position="top">上</button>
+          <button class="edge-btn" data-position="bottom">下</button>
+          <button class="edge-btn" data-position="left">左</button>
+          <button class="edge-btn active" data-position="right">右</button>
+        </div>
+      </div>
+
+      <!-- 色块大小 -->
+      <div class="control-section">
+        <h3>色块大小</h3>
+        <input type="range" id="blockSizeSlider" min="50" max="2000" step="50" value="150">
+        <span id="blockSizeValue">150px</span>
+      </div>
+
+      <!-- 色块数量（仅纵向模式） -->
+      <div id="colorCountSection" class="control-section">
+        <h3>色块数量</h3>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="colorCount" value="3">
+            <span>3个</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="colorCount" value="5" checked>
+            <span>5个</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 颜色排序 -->
+      <div class="control-section">
+        <h3>颜色排序</h3>
+        <select id="colorSortSelect" class="sort-select">
+          <option value="brightness" selected>按亮度</option>
+          <option value="original">按提取顺序</option>
+          <option value="hue">按色相</option>
+          <option value="saturation">按饱和度</option>
+        </select>
+      </div>
+
+      <!-- 色号显示 -->
+      <div class="control-section">
+        <h3>色号显示</h3>
+        <label class="toggle">
+          <input type="checkbox" id="showLabelToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- 颜色名称显示（仅纵向模式） -->
+      <div id="colorNameSection" class="control-section">
+        <h3>颜色名称</h3>
+        <label class="toggle">
+          <input type="checkbox" id="showColorNameToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- 颜色名称语言选择（仅纵向模式） -->
+      <div id="colorNameLangSection" class="control-section">
+        <h3>英文名称</h3>
+        <label class="toggle">
+          <input type="checkbox" id="colorNameLangSelect">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- 提取的颜色 -->
+      <div class="control-section">
+        <h3>提取的颜色</h3>
+        <div id="colorList" class="color-list"></div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="control-section action-buttons">
+        <button id="importBtn" class="btn btn-primary">📂 导入图片</button>
+        <button id="exportBtn" class="btn btn-success" disabled>💾 导出图片</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

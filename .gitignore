@@ -6,8 +6,8 @@ dist/
 colorphoto-tauri/dist/
 
 # Rust build artifacts
-src-tauri/target/
-src-tauri/Cargo.lock
+colorphoto-tauri/src-tauri/target/
+colorphoto-tauri/src-tauri/Cargo.lock
 
 # Generated files
 *.rs.bk
@@ -39,4 +39,4 @@ ehthumbs.db
 npm-debug.log*
 
 # Tauri
-src-tauri/gen/
+colorphoto-tauri/src-tauri/gen/
