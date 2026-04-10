@@ -48,7 +48,7 @@ const appState: {
   colorCount: 5,
   colorSort: 'brightness',
   showLabel: true,
-  showColorName: true,
+  showColorName: false,
   colorNameLanguage: 'cn',
   blockSize: 150,
   exifData: null,
@@ -117,17 +117,16 @@ function setupCallbacks(): void {
   controlPanel.setCallback('onColorCountChange', (count: any) => {
     appState.colorCount = count;
     colorExtractor.colorCount = count;
-    if (appState.allExtractedColors.length >= 5) {
-      const sortedColors = colorExtractor.sortColors(appState.allExtractedColors, appState.colorSort);
+    if (appState.extractedColors.length > 0) {
       let limitedColors: ColorInfo[];
       if (count === 3) {
-        limitedColors = [sortedColors[1], sortedColors[2], sortedColors[3]];
+        // 取当前颜色的中间3个
+        limitedColors = [appState.extractedColors[1], appState.extractedColors[2], appState.extractedColors[3]];
       } else {
-        limitedColors = sortedColors.slice(0, count);
+        limitedColors = appState.extractedColors.slice(0, count);
       }
       appState.extractedColors = limitedColors;
       imageProcessor.setColors(limitedColors);
-      imagePreview.setColors(limitedColors);
       controlPanel.setColors(limitedColors);
       renderImage();
     }

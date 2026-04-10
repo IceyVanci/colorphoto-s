@@ -138,12 +138,28 @@ body {
   margin: 5px;
   border-radius: 4px;
   overflow: hidden;
-  cursor: move;
-  transition: transform 0.2s;
+  cursor: grab;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+  user-select: none;
 }
 
 .color-block:hover {
   transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+.color-block.dragging {
+  opacity: 0.6;
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  position: relative;
+}
+
+.color-block.drag-over {
+  background-color: rgba(233, 69, 96, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.5);
 }
 
 .color-block-inner {

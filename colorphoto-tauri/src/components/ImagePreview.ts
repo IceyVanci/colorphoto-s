@@ -10,6 +10,7 @@ export class ImagePreview {
   private ctx: CanvasRenderingContext2D | null = null;
   private image: HTMLImageElement | null = null;
   private colors: ColorInfo[] = [];
+  private draggedElement: HTMLElement | null = null;
   private draggedIndex: number | null = null;
   private onColorsChange: ((colors: ColorInfo[]) => void) | null = null;
 
@@ -56,7 +57,6 @@ export class ImagePreview {
     this.colors.forEach((color, index) => {
       const block = document.createElement('div');
       block.className = 'color-block';
-      block.draggable = true;
       block.dataset.index = String(index);
       
       const inner = document.createElement('div');
@@ -70,25 +70,36 @@ export class ImagePreview {
       block.appendChild(inner);
       block.appendChild(label);
       
-      block.addEventListener('dragstart', (e) => {
+      // 使用原生 mouse 事件实现拖拽
+      block.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        this.draggedElement = block;
         this.draggedIndex = index;
-        e.dataTransfer!.effectAllowed = 'move';
+        block.classList.add('dragging');
       });
       
-      block.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer!.dropEffect = 'move';
-      });
-      
-      block.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (this.draggedIndex !== null && this.draggedIndex !== index) {
+      block.addEventListener('mouseenter', (e) => {
+        if (this.draggedElement && this.draggedIndex !== null && this.draggedIndex !== index) {
+          // 交换颜色
           this.swapColors(this.draggedIndex, index);
+          this.draggedIndex = index;
         }
-        this.draggedIndex = null;
+      });
+      
+      block.addEventListener('mouseleave', (e) => {
+        // 可选：移除高亮
       });
       
       this.colorBlocksContainer!.appendChild(block);
+    });
+    
+    // 添加全局 mouseup 事件
+    document.addEventListener('mouseup', () => {
+      if (this.draggedElement) {
+        this.draggedElement.classList.remove('dragging');
+        this.draggedElement = null;
+        this.draggedIndex = null;
+      }
     });
   }
   

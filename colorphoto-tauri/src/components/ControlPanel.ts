@@ -167,12 +167,10 @@ export class ControlPanel {
         this.state.displayMode === 'edge' ? 'block' : 'none';
     }
     if (this.colorNameSection) {
-      this.colorNameSection.style.display = 
-        (this.state.displayMode === 'vertical' || this.state.displayMode === 'grid') ? 'block' : 'none';
+      this.colorNameSection.style.display = 'block';
     }
     if (this.colorNameLangSection) {
-      this.colorNameLangSection.style.display = 
-        (this.state.displayMode === 'vertical' || this.state.displayMode === 'grid') ? 'block' : 'none';
+      this.colorNameLangSection.style.display = 'block';
     }
     if (this.colorCountSection) {
       this.colorCountSection.style.display = 

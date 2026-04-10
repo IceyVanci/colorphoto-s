@@ -54,21 +54,50 @@ export class ImageProcessor {
     const modeData = this.modePositions[this.displayMode];
     
     if (!modeData.userHasCustom || colors.length !== modeData.positions.length) {
-      if (this.displayMode === 'vertical' && modeData.positions.length > 0) {
+      if ((this.displayMode === 'vertical' || this.displayMode === 'grid') && modeData.positions.length > 0) {
+        // 保持位置记忆，只更新颜色
         const centerX = modeData.positions.reduce((sum, p) => sum + p.x + p.width / 2, 0) / modeData.positions.length;
         const centerY = modeData.positions.reduce((sum, p) => sum + p.y + p.height / 2, 0) / modeData.positions.length;
-        const totalHeight = colors.length * this.blockSize;
-        const newStartY = centerY - totalHeight / 2;
         
-        this.blockPositions = [];
-        colors.forEach((_, index) => {
-          this.blockPositions.push({
-            x: centerX - this.blockSize / 2,
-            y: newStartY + index * this.blockSize,
-            width: this.blockSize,
-            height: this.blockSize
+        if (this.displayMode === 'vertical') {
+          const totalHeight = colors.length * this.blockSize;
+          const newStartY = centerY - totalHeight / 2;
+          
+          this.blockPositions = [];
+          colors.forEach((_, index) => {
+            this.blockPositions.push({
+              x: centerX - this.blockSize / 2,
+              y: newStartY + index * this.blockSize,
+              width: this.blockSize,
+              height: this.blockSize
+            });
           });
-        });
+        } else {
+          // grid 模式：保持中心位置不变
+          const totalWidth = 2 * this.blockSize;
+          const totalHeight = 2 * this.blockSize;
+          let newStartX = centerX - totalWidth / 2;
+          let newStartY = centerY - totalHeight / 2;
+          
+          // 边界检查
+          if (this.canvas) {
+            newStartX = Math.max(0, Math.min(newStartX, this.canvas.width - totalWidth));
+            newStartY = Math.max(0, Math.min(newStartY, this.canvas.height - totalHeight));
+          }
+          
+          this.blockPositions = [];
+          const gridColors = colors.slice(0, 4);
+          gridColors.forEach((_, index) => {
+            const row = Math.floor(index / 2);
+            const col = index % 2;
+            this.blockPositions.push({
+              x: newStartX + col * this.blockSize,
+              y: newStartY + row * this.blockSize,
+              width: this.blockSize,
+              height: this.blockSize
+            });
+          });
+        }
         modeData.positions = [...this.blockPositions];
       } else {
         this.initBlockPositions();
@@ -547,35 +576,95 @@ export class ImageProcessor {
           ctx.fillText(text, hexX, hexY);
           
         } else {
-          const centerX = pos.x + pos.width / 2;
-          const centerY = pos.y + pos.height / 2;
+          // 边缘模式：色号在边缘1/3处，颜色名称在内侧1/3处
+          const isVerticalLabel = this.edgePosition === 'left' || this.edgePosition === 'right';
           
+          // 字体大小是色块短边的三分之一
           const shortSide = Math.min(pos.width, pos.height);
           const fontSize = shortSide / 3;
           const strokeWidth = Math.max(1, fontSize * 0.06);
           
           ctx.font = `bold ${fontSize}px 'MiSans', monospace`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          
-          const isVerticalLabel = this.edgePosition === 'left' || this.edgePosition === 'right';
           
           if (isVerticalLabel) {
+            // 竖向边缘（left/right）
+            // 旋转后的坐标系：x 对应原来的垂直方向（居中），y 对应原来的水平方向
             ctx.save();
-            ctx.translate(centerX, centerY);
+            ctx.translate(pos.x + pos.width / 2, pos.y + pos.height / 2);
             ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 旋转后 y 轴范围 [-pos.width/2, pos.width/2]
+            // 从边缘到1/3处 = pos.width/2 - pos.width/3 = pos.width/6
+            const isRight = this.edgePosition === 'right';
+            const hexY = isRight ? pos.width / 6 : -pos.width / 6;
+            const nameY = isRight ? -pos.width / 6 : pos.width / 6;
+            
+            // 绘制颜色名称（在内侧）
+            if (this.showColorName) {
+              let colorName = getColorName(color.hex, this.colorNameLanguage);
+              if (this.colorNameLanguage === 'cn' && colorName.endsWith('色')) {
+                colorName = colorName.slice(0, -1);
+              }
+              ctx.strokeStyle = '#fff';
+              ctx.lineWidth = strokeWidth;
+              ctx.strokeText(colorName, 0, nameY);
+              ctx.strokeStyle = '#000';
+              ctx.lineWidth = strokeWidth;
+              ctx.strokeText(colorName, 0, nameY);
+              ctx.fillStyle = color.hex;
+              ctx.fillText(colorName, 0, nameY);
+            }
+            
+            // 绘制色号（在边缘）
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = strokeWidth;
+            ctx.strokeText(text, 0, hexY);
             ctx.strokeStyle = '#000';
             ctx.lineWidth = strokeWidth;
-            ctx.strokeText(text, 0, 0);
-            ctx.fillStyle = '#fff';
-            ctx.fillText(text, 0, 0);
+            ctx.strokeText(text, 0, hexY);
+            ctx.fillStyle = color.hex;
+            ctx.fillText(text, 0, hexY);
+            
             ctx.restore();
           } else {
+            // 横向边缘（top/bottom）
+            // 文字水平居中，竖直方向上：top模式色号在上1/3、颜色名称在下1/3，bottom模式相反
+            const centerX = pos.x + pos.width / 2;
+            
+            const isBottom = this.edgePosition === 'bottom';
+            const hexY = isBottom ? pos.y + pos.height * 2/3 : pos.y + pos.height / 3;
+            const nameY = isBottom ? pos.y + pos.height / 3 : pos.y + pos.height * 2/3;
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 绘制颜色名称（在内侧）
+            if (this.showColorName) {
+              let colorName = getColorName(color.hex, this.colorNameLanguage);
+              if (this.colorNameLanguage === 'cn' && colorName.endsWith('色')) {
+                colorName = colorName.slice(0, -1);
+              }
+              ctx.strokeStyle = '#fff';
+              ctx.lineWidth = strokeWidth;
+              ctx.strokeText(colorName, centerX, nameY);
+              ctx.strokeStyle = '#000';
+              ctx.lineWidth = strokeWidth;
+              ctx.strokeText(colorName, centerX, nameY);
+              ctx.fillStyle = color.hex;
+              ctx.fillText(colorName, centerX, nameY);
+            }
+            
+            // 绘制色号（在边缘）
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = strokeWidth;
+            ctx.strokeText(text, centerX, hexY);
             ctx.strokeStyle = '#000';
             ctx.lineWidth = strokeWidth;
-            ctx.strokeText(text, centerX, centerY);
-            ctx.fillStyle = '#fff';
-            ctx.fillText(text, centerX, centerY);
+            ctx.strokeText(text, centerX, hexY);
+            ctx.fillStyle = color.hex;
+            ctx.fillText(text, centerX, hexY);
           }
         }
       }
