@@ -279,3 +279,44 @@ document.addEventListener('drop', (e) => {
   e.preventDefault();
   e.stopPropagation();
 });
+
+// 关于弹窗事件处理
+const aboutBtn = document.getElementById('aboutBtn');
+const modal = document.getElementById('aboutModal');
+const closeBtn = document.getElementById('closeModal');
+const modalContent = modal?.querySelector('.modal-content');
+
+if (aboutBtn && modal && closeBtn) {
+  aboutBtn.addEventListener('click', () => {
+    modal.style.display = 'block';
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // 处理弹窗内容中的链接点击，在默认浏览器打开
+  if (modalContent) {
+    modalContent.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'A') {
+        e.preventDefault();
+        const href = (target as HTMLAnchorElement).getAttribute('href');
+        if (href) {
+          try {
+            const { openUrl } = await import('@tauri-apps/plugin-opener');
+            await openUrl(href);
+          } catch (err) {
+            console.error('Failed to open link:', err);
+          }
+        }
+      }
+    });
+  }
+}
