@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
-    "@tauri-apps/plugin-opener": "^2.5.3"
+    "@tauri-apps/plugin-opener": "^2.5.3",
+    "piexifjs": "^1.0.6"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",

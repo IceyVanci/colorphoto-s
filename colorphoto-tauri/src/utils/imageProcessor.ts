@@ -9,7 +9,7 @@ export class ImageProcessor {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private originalImage: HTMLImageElement | null = null;
-  private colors: ColorInfo[] = [];
+  colors: ColorInfo[] = [];
   private displayMode: 'vertical' | 'edge' | 'grid' = 'vertical';
   private edgePosition: 'top' | 'bottom' | 'left' | 'right' = 'right';
   private blockSize: number = 150;

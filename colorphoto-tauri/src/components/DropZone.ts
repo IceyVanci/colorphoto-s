@@ -2,14 +2,26 @@
  * DropZone Component - 拖拽区域组件
  */
 
+import { invoke } from '@tauri-apps/api/core';
+
+interface FileResult {
+  path: string | null;
+  data: string | null;
+}
+
 export class DropZone {
   private element: HTMLElement | null;
   private onFileSelect: (file: File) => void;
   private fileInput: HTMLInputElement | null;
+  private onDataResult: ((result: FileResult) => void) | null = null;
 
-  constructor(elementId: string, options: { onFileSelect: (file: File) => void } = { onFileSelect: () => {} }) {
+  constructor(elementId: string, options: { 
+    onFileSelect?: (file: File) => void;
+    onDataResult?: (result: FileResult) => void 
+  } = {}) {
     this.element = document.getElementById(elementId);
     this.onFileSelect = options.onFileSelect || (() => {});
+    this.onDataResult = options.onDataResult || null;
     this.fileInput = document.getElementById('fileInput') as HTMLInputElement;
     
     if (!this.element) {
@@ -23,12 +35,19 @@ export class DropZone {
   private init(): void {
     if (!this.element) return;
     
-    this.element.addEventListener('click', () => {
-      if (this.fileInput) {
-        this.fileInput.click();
+    // 点击使用 Tauri 的原生文件选择器
+    this.element.addEventListener('click', async () => {
+      try {
+        const result = await invoke<FileResult>('open_file_dialog');
+        if (result && result.data && this.onDataResult) {
+          this.onDataResult(result);
+        }
+      } catch (error) {
+        console.error('Error opening file dialog:', error);
       }
     });
     
+    // 保留 fileInput 作为备用（用于拖拽时读取文件）
     if (this.fileInput) {
       this.fileInput.addEventListener('change', (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];

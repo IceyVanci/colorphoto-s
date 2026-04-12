@@ -26,7 +26,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0f0f0f;
+  background-color: #16213e;
   position: relative;
   overflow: hidden;
 }
@@ -35,7 +35,7 @@ body {
 .drop-zone {
   width: 90%;
   height: 80%;
-  border: 3px dashed #333;
+  border: 3px dashed #0f3460;
   border-radius: 20px;
   display: flex;
   align-items: center;
