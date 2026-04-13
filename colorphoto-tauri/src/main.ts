@@ -317,6 +317,12 @@ async function loadImage(result: FileResult): Promise<void> {
     const displayColors = sortedColors.slice(0, appState.colorCount);
     
     appState.extractedColors = displayColors;
+    // 导入新图片时重置所有模式的颜色排序状态
+    appState.modeColors = {
+      vertical: [],
+      grid: [],
+      edge: []
+    };
     imageProcessor.setImage(imagePreview.getImage()!);
     imageProcessor.setColors(displayColors);
     imagePreview.setColors(displayColors);

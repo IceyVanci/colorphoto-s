@@ -45,6 +45,10 @@ export class ImageProcessor {
     if (this.canvas) {
       this.canvas.width = img.width;
       this.canvas.height = img.height;
+      // 导入新图片时重置所有模式的用户自定义位置
+      Object.keys(this.modePositions).forEach(mode => {
+        this.modePositions[mode as keyof typeof this.modePositions].userHasCustom = false;
+      });
       this.initBlockPositions();
     }
   }
